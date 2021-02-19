@@ -5,7 +5,7 @@ library(ggplot2)
 library("ggpubr")
 
 
-dataset_heavy = read.csv2("C:\\Users\\benja\\OneDrive\\Documents\\Calibration\\Delta-vega hedged portfolio\\Dataset.csv", header = TRUE)
+dataset_heavy = read.csv2("C:\\Users\\benja\\OneDrive\\Documents\\Calibration\\Delta-vega_hedged_portfolio_\\Dataset.csv", header = TRUE)
 
 head = head(dataset_heavy, 10) ; head = head[, -c(5,6)]
 
@@ -91,9 +91,3 @@ gamma_serie_Opt6.5 = Vector.GammaOption.VolatVary(d1_vect_Opt6.5, stock_price, h
 
 #list of parameters
 list_prm_Opt6 = as.data.frame(Vector.PrmGamma(gamma_serie_Opt6, gamma_serie_Opt6.5, delta_serie_Opt6, delta_serie_Opt6.5, obs_option_price_6, obs_option_price_6.5, stock_price))
-
-#Portfolio delta hedged
-pf_DeltaReplication_Opt6 = pf.delta_hedging(delta_serie_Opt6, obs_option_price_6, stock_price) 
-
-#Portfolio delta-Gamma hedged
-pf_DeltaGamma_Replication_Opt6 = pf.deltaGamma_hedging(obs_option_price_6, obs_option_price_6.5, stock_price, list_prm_Opt6)

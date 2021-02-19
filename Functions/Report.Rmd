@@ -21,7 +21,7 @@ opts_chunk$set(echo=TRUE,
 ```
 
 # Summary of the project
-From the data provided (stock history, column B) in the file *Dataset*, we want to create the portfolio history replication of a European call with maturity on **31/12/2018**, strike **K = 6**. To do that, we are going to use a synthetic replication portfolio formed from a stock, cash and another K6.5 European call option (to neutralize the effect of vega on the delta of the option)
+From the data provided (stock history, column B) in the file *Dataset*, we want to create the portfolio history of replication of a european call with maturity on **31/12/2018**, strike **K = 6**. To do that, we are going to use a synthetic replication portfolio formed from a stock, cash and another K6.5 european call option (to neutralize the effect of $\sigma$ on the price of the option).
 
 Overview of the data
 
@@ -134,7 +134,6 @@ ggplot(data = as.data.frame(obs_option_price_6),  aes(x = date)) +
 
 
 ```
-<br>
 
 
 ```{r, echo = FALSE, fig.align = "center"}
@@ -149,7 +148,7 @@ In this part, we are going to build a synthetic delta-Vega hedged portfolio **fo
 
 Overview of the principles of **delta-vega hedging** : 
 
-![](C:\Users\benja\OneDrive\Images\Saved Pictures\vega.png)
+![](C:\Users\benja\OneDrive\Images\Saved Pictures\vega.jpg)
 We follow the same reasoning as for the previous project to find the following system : 
 
 $$
@@ -171,16 +170,16 @@ $$
 \right.
 $$
 
-On the array above, we have different parameters. First, $\delta_t = N\big(d_1(t)\big)$  with $d_1(t) = \frac{1}{\sigma\sqrt{T_t}}\Big[ln\big(\frac{S_t}{K}\big) + \big(r + \frac{1}{2}\sigma^2\big)T_t\Big]$, $S_t$ the value of the stock and $T_t$ the vector of maturities. Furthermore, we have $\nu = \frac{\partial C}{\partial  \sigma} = S\sqrt{T}N'(d_1)$, and $$\frac{\partial \sigma'}{\partial \sigma} = 
-\frac{\sigma'_{t+1} - \sigma'_t}{\sigma_{t+1} - \sigma_t}$$. Here, $\sigma_t$ and $\sigma'_t$ represent the volatilities of the K6 and K6.5 Options. 
+On the array above, we have different parameters. First, $\delta_t = N\big(d_1(t)\big)$  with $d_1(t) = \frac{1}{\sigma\sqrt{T_t}}\Big[ln\big(\frac{S_t}{K}\big) + \big(r + \frac{1}{2}\sigma^2\big)T_t\Big]$, $S_t$ the value of the stock and $T_t$ the vector of maturities. Furthermore, we have $\nu = \frac{\partial C}{\partial  \sigma} = S\sqrt{T}N'(d_1)$, and $\frac{\partial \sigma'}{\partial \sigma} = 
+\frac{\sigma'_{t+1} - \sigma'_t}{\sigma_{t+1} - \sigma_t}$. Here, $\sigma_t$ and $\sigma'_t$ represent the volatilities of the K6 and K6.5 options. 
 
-Besides, **we have another set of three parameters** : $q, l$ and $q'$ corresponding to the quantities of stock, cash and K6.5 option. We have to solve the following linear system to find the value of $q, q'$ and $q''$ :
+Besides, **we have another set of three parameters** : $q, l$ and $q'$ corresponding to the quantities of stock, cash and K6.5 option to be held in our portfolio. We can deduce the **general formula** to obtain the value of the portfolio over time : 
 
-We can deduce the **general formula** to obtain the value of the portfolio over time : 
+$V_t = V_{t - 1} + q_{t - 1}(S_t - S_{t - 1}) + q'_{t - 1}(C'_t - C'_{t - 1})$
 
-$$V_t = V_{t - 1} + q_{t - 1}(S_t - S_{t - 1}) + q'_{t - 1}(C'_t - C'_{t - 1})$$
+In a first while, let's compute the **implied volatilities** of the K6 and K6.5 options over time using optimization algoritms (Newton-Raphson & bisection method) and get an overview of these
 
-In a first while, let's compute the **implied volatilities** of K6 and K6.5 over time and give an overview of them thanks to optimization algoritms (Newton-Raphson & bisection method).
+\
 
 ```{r, echo = FALSE}
 #Optimization Algorithm
@@ -473,7 +472,9 @@ a = ggplot(as.data.frame(hist_volat_option1), aes(x = date)) +
 a + theme(legend.position = "bottom")
 
 ```
-Now, let's compute the $\nu_t$ of the two options (thanks to the formula mentioned above) and get an overview of them.
+\
+
+Now, let's compute the $\nu_t$ of the two options (thanks to the formula mentioned above) and get an overview of these
 
 ```{r, echo = FALSE}
 Vector.bs_vega  <- function(stock_price, K, T_vector, d1_vector, q=0.0, type = "Call") 
@@ -498,9 +499,9 @@ head(vega_Opt6, 10)
 
 head(vega_Opt6.5, 10)
 ```
-Then, we have to compute the ratio of volatility increments $$\frac{\partial \sigma'}{\partial \sigma} = 
-\frac{\sigma'_{t+1} - \sigma'_t}{\sigma_{t+1} - \sigma_t}$$. As a reminder, we have to consider the following formula 
-$\frac{\partial C'}{\partial \sigma} = \frac{\partial C'}{\partial \sigma'}\frac{\partial \sigma'}{\partial \sigma}$.
+Then, we have to compute the ratio of volatility increments 
+$\frac{\partial \sigma'}{\partial \sigma} = \frac{\sigma'_{t+1} - \sigma'_t}{\sigma_{t+1} - \sigma_t}$
+.As a reminder, we have to consider the following formula : $\frac{\partial C'}{\partial \sigma} = \frac{\partial C'}{\partial \sigma'}\frac{\partial \sigma'}{\partial \sigma}$
 
 
 ```{r, echo = FALSE}
@@ -562,7 +563,7 @@ crossed_vega_option2 = compute_crossed_vega(vega_Opt6.5, derived_sigma)
 ```
 
 
-Now, let's compute the value of $q, l$ and $q'$ and get an overview of them (reminder : the first three values can't be computed) :
+Now, let's compute the value of $q, l$ and $q'$ (reminder: the first three values can't be computed)
 
 ```{r, echo = FALSE}
 Vector.PrmVega = function (vega_serie_1, vega_serie_2, delta_serie_1, delta_serie_2, option_price_Opts6, option_price_Opts6.5, crossed_vega_Opt2, stock_price)
@@ -595,99 +596,32 @@ head(list_prm_Opt6_vega, 10)
 
 ```
 
-Finally, we use the previous parameters and the iteration process mentioned above in order to build the history of the portfolio replication : 
+Finally, we use the previous parameters and the iteration process mentioned above in order to build the history of the portfolio of replication : 
 
-/
-
-
-
-
-```{r, echo=FALSE, fig.align="center"}
-
-pf.deltaVega_hedging = function (price_option_1, price_option_2, stock_price, list_prm_vega)
-{
-  portfolio = rep(NA, length(price_option_1))
-  j = 1
-  #V0 = C0 en vÃ©rifiant que la premiere valeur est pas NA
-  if (is.na(list_prm_vega[1, 1]))
-  {
-    while (is.na(list_prm_vega[j, 1]))
-    {
-      j = j + 1
-    }
-    #the last +1 is here because of q' : quantity of the second option
-    portfolio[j] = price_option_1[j]
-  }
-  else 
-  {
-    portfolio[1] = price_option_1[1]
-  }
-  #the last +1 is here because of q' : quantity of the second option
-  for (i in (j + 1):length(portfolio))
-  {
-    if (!is.na(list_prm_vega[i - 1, 1]))
-    {
-      portfolio[i] = portfolio[i - 1] + list_prm_vega[i - 1, 3] * (stock_price[i] - stock_price[i - 1]) + list_prm_vega[i - 1, 1] * (price_option_2[i] - price_option_2[i - 1])
-    }
-  }
-  return (portfolio)
-}
-
-#Delta-Vega Hedging
-pf_Delta_Vega = pf.deltaVega_hedging(obs_option_price_6, obs_option_price_6.5, stock_price, list_prm_Opt6_vega)
-
-```
-
-
-
-
-```{r, echo=FALSE}
-
-#Delta-vega
-pf_DeltaVega_Replication_Opt6_graphe <- ggplot(as.data.frame(pf_Delta_Vega), aes(x = date, y = pf_Delta_Vega)) + geom_line(color = "black") + 
-  labs(title = "Delta-Vega Hedging de Opt K6 avec Opt K6.5 (Colonne D)") + xlab("") + ylab("Value") +
-  geom_line(aes(y = obs_option_price_6), color="steelblue")
-
-pf_DeltaVega_Replication_Opt6_graphe
-```
-
-
-**Interpretation** : As we can see on the chart above, the two times series are almost equal over time. We can deduce that the hedge method is really efficient with a constant volatility.
-
-
-
-```{r, echo=FALSE}
-
- 
-
-
-```
-
-
-
+\
 
 ```{r, echo = FALSE}
-Vector.DeltaOption = function (vector_d1)
+Vector.PrmGamma = function (gamma_serie_1, gamma_serie_2, delta_serie_1, delta_serie_2, option_price_1, option_price_2, stock_price)
 {
-  vector_delta <- rep(NA,length(vector_d1))
-  for (i in 1:length(vector_d1))
+  q_option_2 = rep(NA, length(gamma_serie_1))
+  q_stock = rep(NA, length(gamma_serie_1))
+  q_cash = rep(NA, length(gamma_serie_1))
+  for (i in 1:length(gamma_serie_1))
   {
-    #delta[i] = N(d1[i])
-    vector_delta[i] = pnorm(vector_d1[i])
+    if (!is.na(gamma_serie_1[i]))
+    {
+      #q''(i)= G(i)/G''(i)
+      q_option_2[i] = gamma_serie_1[i] / gamma_serie_2[i]
+      #q(i)= delta(i) - q''(i) * delta''(i)
+      q_stock[i] = delta_serie_1[i] - q_option_2[i] * delta_serie_2[i]
+      #q'(i) = C(i) - q''(i) * C''(i) - q(i) * delta (i)
+      q_cash[i] = option_price_1[i] - q_option_2[i] * option_price_2[i] - q_stock[i] * stock_price[i]
+    }
   }
-  return (vector_delta)
+  list_prm = list(q_option_2, q_cash, q_stock)
+  names(list_prm) = c("q_option_2",  "q_cash", "q_stock")
+  return (list_prm)
 }
-
-Vector.d1 = function (S, K, r, volat, T_vector)
-{
-  vector_d1 <- rep(NA, length(T_vector))
-  for (i in 1:length(T_vector))
-  {
-    vector_d1[i] = (log(S[i]/K) + (r + 0.5*volat^2)*T_vector[i]) / (volat*sqrt(T_vector[i]))
-  }
-  return (vector_d1)
-}
-
 
 Vector.GammaOption = function (vector_d1, stock_price, volat, T_vector)
 {
@@ -714,60 +648,98 @@ Vector.GammaOption.VolatVary = function (vector_d1, stock_price, volat, T_vector
   return (vector_gamma)
 }
 
-```
+option_price_1 = Vector.PriceOption(stock_price, 6, T_vector, 0, 0.2, "Call")
 
+d1_vect_1 = Vector.d1(stock_price, 6, 0, 0.2, T_vector)
 
+delta_serie_1 = Vector.DeltaOption(d1_vect_1)
+gamma_serie_1 = Vector.GammaOption(d1_vect_1, stock_price, 0.2, T_vector)
 
-```{r, echo=FALSE}
-#Question 5 : Dynamic Hedging for the Option K = 6
-d1_vect_Opt6 = Vector.d1.VolatVary(stock_price, 6, 0, hist_volat_option1, T_vector)
+#Greeks of the second Option 
+d1_vect_2 = Vector.d1(stock_price, 6.5, 0, 0.2, T_vector)
 
-delta_serie_Opt6 = Vector.DeltaOption(d1_vect_Opt6)
+delta_serie_2 = Vector.DeltaOption(d1_vect_2)
 
-gamma_serie_Opt6 = Vector.GammaOption.VolatVary(d1_vect_Opt6, stock_price, hist_volat_option1, T_vector)
+gamma_serie_2 = Vector.GammaOption(d1_vect_2, stock_price, 0.2, T_vector)
 
-#Same for the other option K = 6.5
-d1_vect_Opt6.5 = Vector.d1.VolatVary(stock_price, 6.5, 0, hist_volat_option2, T_vector)
-
-delta_serie_Opt6.5 = Vector.DeltaOption(d1_vect_Opt6.5)
-
-gamma_serie_Opt6.5 = Vector.GammaOption.VolatVary(d1_vect_Opt6.5, stock_price, hist_volat_option2, T_vector)
+option_price_2 = Vector.PriceOption(stock_price, 6.5, T_vector, 0, 0.2, "Call")
 
 #list of parameters
-list_prm_Opt6 = as.data.frame(Vector.PrmGamma(gamma_serie_Opt6, gamma_serie_Opt6.5, delta_serie_Opt6, delta_serie_Opt6.5, obs_option_price_6, obs_option_price_6.5, stock_price))
+list_prm = as.data.frame(Vector.PrmGamma(gamma_serie_1, gamma_serie_2, delta_serie_1, delta_serie_2, option_price_1, option_price_2, stock_price))
 
-#Portfolio delta-Gamma hedged
-pf_DeltaGamma_Replication_Opt6 = pf.deltaGamma_hedging(obs_option_price_6, obs_option_price_6.5, stock_price, list_prm_Opt6)
+```
 
-b = ggplot(as.data.frame(pf_DeltaGamma_Replication_Opt6), aes(x = date)) + 
-  geom_line(aes(y = pf_DeltaGamma_Replication_Opt6, colour = "Delta-gamma hedged pf")) + 
-  geom_line(aes(y = option_price_1, colour = "K6 Option")) +
-  scale_color_manual(name = "", 
-                     values = c("Delta-gamma hedged pf" = "red", "K6 Option" = "blue")) +
-  scale_y_continuous(breaks = seq(0, 1.6, 0.2)) +
-  labs(title = "Delta-gamma hedge - K6 Option with non cte vol") + 
-  xlab("") + ylab("Value") +
+
+
+
+```{r, echo=FALSE, fig.align="center"}
+
+#---------------------------------Question 6 : Delta-vega hedging-------------------------------------
+
+pf.deltaVega_hedging = function (price_option_1, price_option_2, stock_price, list_prm_vega)
+{
+  portfolio = rep(NA, length(price_option_1))
+  j = 1
+  #V0 = C0 en vérifiant que la premiere valeur est pas NA
+  if (is.na(list_prm_vega[1, 1]))
+  {
+    while (is.na(list_prm_vega[j, 1]))
+    {
+      j = j + 1
+    }
+    #the last +1 is here because of q' : quantity of the second option
+    portfolio[j] = price_option_1[j]
+  }
+  else 
+  {
+    portfolio[1] = price_option_1[1]
+  }
+  #the last +1 is here because of q' : quantity of the second option
+  for (i in (j + 1):length(portfolio))
+  {
+    if (!is.na(list_prm_vega[i - 1, 1]))
+    {
+      portfolio[i] = portfolio[i - 1] + list_prm_vega[i - 1, 3] * (stock_price[i] - stock_price[i - 1]) + list_prm[i - 1, 1] * (price_option_2[i] - price_option_2[i - 1])
+    }
+  }
+  return (portfolio)
+}
+
+#Delta-Vega Hedging
+pf_Delta_Vega = pf.deltaVega_hedging(obs_option_price_6, obs_option_price_6.5, stock_price, list_prm_Opt6_vega)
+
+```
+
+
+
+
+```{r, echo=FALSE}
+
+#Delta-vega
+pf_DeltaVega_Replication_Opt6_graphe <- ggplot(as.data.frame(pf_Delta_Vega), aes(x = date)) + geom_line(aes(y = pf_Delta_Vega, colour = "Delta-vega hedged pf")) + 
+geom_line(aes(y = obs_option_price_6, colour="K6 Option")) +
+scale_color_manual(name = "", values = c("Delta-vega hedged pf" = "black", "K6 Option" = "blue")) +
+labs(title = "Delta-Vega Hedging of the K6 Option") + xlab("") + ylab("Value") +
+xlab("Date") + ylab("Value") +
   theme(plot.title = element_text(hjust = 0.5, size = 15, face = "bold")) +
   theme(axis.title.x = element_text(hjust = 0.5, size = 12, face = "bold")) +
-  theme(axis.title.y = element_text(hjust = 0.5, size = 12, face = "bold")) 
-b + theme(legend.position = "bottom")
+  theme(axis.title.y = element_text(hjust = 0.5, size = 12, face = "bold"))
+ 
 
-```
-
-**Interpretation** : We can see on the chart above that the replication is not perfect, especially from June, 2018. This is not very surprising because in this section we considered a **non-constant volatility** for the two options because this corresponds to a **more realistic situation**.
-
-```{r, echo=FALSE}
+pf_DeltaVega_Replication_Opt6_graphe + theme(legend.position = "bottom")
 ```
 
 
-```{r, echo=FALSE}
-```
+**Interpretation** : As we can see on the chart above, the two times series are almost equal over time, especially from March, 2018. We can deduce that the hedge method is really efficient. To improve the quality of the replication, we could add an other call option to the portfolio to build a delta-gamma-vega hedged portfolio.
+
 
 
 ```{r, echo=FALSE}
+
+ 
+
+
 ```
 
 
-```{r, echo=FALSE}
-```
 
